@@ -1,6 +1,9 @@
 subprojects {
     repositories {
         mavenCentral()
+        maven {
+            url "http://neuroph.sourceforge.net/maven2"
+        }
     }
 
     apply plugin: 'java'
