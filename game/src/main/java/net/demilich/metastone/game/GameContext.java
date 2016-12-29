@@ -586,6 +586,16 @@ public class GameContext implements Cloneable, IDisposable {
 		return builder.toString();
 	}
 
+	@Override
+	public boolean equals(Object other) {
+		return super.equals(other); // TODO
+	}
+
+	@Override
+	public int hashCode() {
+		return super.hashCode(); // TODO
+	}
+
 	public Entity tryFind(EntityReference targetKey) {
 		try {
 			return resolveSingleTarget(targetKey);
