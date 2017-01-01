@@ -20,8 +20,7 @@ import net.demilich.metastone.game.behaviour.GreedyOptimizeMove;
 import net.demilich.metastone.game.behaviour.IBehaviour;
 import net.demilich.metastone.game.behaviour.NoAggressionBehaviour;
 import net.demilich.metastone.game.behaviour.PlayRandomBehaviour;
-import net.demilich.metastone.game.behaviour.advanced.AdvancedBehaviour;
-import net.demilich.metastone.game.behaviour.advanced.SimpleStateEvaluate;
+import net.demilich.metastone.game.behaviour.advanced.*;
 import net.demilich.metastone.game.behaviour.heuristic.WeightedHeuristic;
 import net.demilich.metastone.game.behaviour.human.HumanBehaviour;
 import net.demilich.metastone.game.behaviour.threat.GameStateValueBehaviour;
@@ -39,6 +38,8 @@ import net.demilich.metastone.gui.common.BehaviourStringConverter;
 import net.demilich.metastone.gui.common.DeckStringConverter;
 import net.demilich.metastone.gui.common.HeroStringConverter;
 import net.demilich.metastone.gui.playmode.config.PlayerConfigType;
+import org.neuroph.core.NeuralNetwork;
+import org.neuroph.nnet.MultiLayerPerceptron;
 
 public class PlayerConfigView extends VBox {
 
@@ -172,7 +173,22 @@ public class PlayerConfigView extends VBox {
 		behaviourList.add(new GreedyOptimizeMove(new WeightedHeuristic()));
 		behaviourList.add(new NoAggressionBehaviour());
 
-		behaviourList.add(new AdvancedBehaviour<>(new SimpleStateEvaluate(), 2, 10));
+		AdvancedBehaviour<Float> abSimple = new AdvancedBehaviour<>(new SimpleStateEvaluate(), 2, 10);
+		abSimple.setName("Simple Evaluate");
+		behaviourList.add(abSimple);
+
+		String NETWORK_FILE_PATH = "/Users/lukaszgrad/metastone/perceptron";
+		AdvancedBehaviour<Double> abPerceptron = new AdvancedBehaviour<>(
+			PerceptronEvaluate.createFromFile(NETWORK_FILE_PATH, new SimpleFeatureExtractor()), 1, 10);
+		abPerceptron.setName("Perceptron Evaluate");
+		behaviourList.add(abPerceptron);
+
+		String TRAINED_NETWORK_FILE_PATH = "/Users/lukaszgrad/metastone/network";
+		AdvancedBehaviour<Double> abTrainedNeural = new AdvancedBehaviour<>(
+			 NeuralNetworkEvaluate.createFromFile(TRAINED_NETWORK_FILE_PATH, new SimpleFeatureExtractor()), 1, 10
+		);
+		abTrainedNeural.setName("Network Evaluate");
+		behaviourList.add(abTrainedNeural);
 
 		behaviourBox.setItems(behaviourList);
 		behaviourBox.valueProperty().addListener(this::onBehaviourChanged);

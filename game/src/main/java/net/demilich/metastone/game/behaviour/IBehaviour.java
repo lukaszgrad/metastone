@@ -17,5 +17,7 @@ public interface IBehaviour extends Cloneable {
 
 	void onGameOver(GameContext context, int playerId, int winningPlayerId);
 
+	void onTurnOver(GameContext context, int playerId);
+
 	GameAction requestAction(GameContext context, Player player, List<GameAction> validActions);
 }

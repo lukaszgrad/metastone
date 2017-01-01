@@ -3,6 +3,7 @@ dependencies {
     compile group: 'com.google.code.gson', name: 'gson', version: '2.3.1'
     compile group: 'commons-io', name: 'commons-io', version: '2.4'
     compile group: 'org.neuroph', name: 'neuroph-core', version: '2.9'
+    compile group: 'org.deeplearning4j', name: 'deeplearning4j-nn', version: '0.7.2'
 
     testCompile project(':cards')
     testCompile group: 'org.testng', name: 'testng', version: '6.+'

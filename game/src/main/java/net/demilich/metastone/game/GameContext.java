@@ -434,6 +434,8 @@ public class GameContext implements Cloneable, IDisposable {
 		while (!gameDecided()) {
 			startTurn(activePlayer);
 			while (playTurn()) {}
+			for (Player player : getPlayers())
+				player.getBehaviour().onTurnOver(this, player.getId());
 			if (getTurn() > GameLogic.TURN_LIMIT) {
 				break;
 			}

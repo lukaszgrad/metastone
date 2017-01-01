@@ -14,7 +14,8 @@ public abstract class Behaviour implements IBehaviour {
 	}
 
 	@Override
-	public void onGameOver(GameContext context, int playerId, int winningPlayerId) {
-	}
+	public void onGameOver(GameContext context, int playerId, int winningPlayerId) {}
 
+	@Override
+	public void onTurnOver(GameContext context, int playerId) {}
 }

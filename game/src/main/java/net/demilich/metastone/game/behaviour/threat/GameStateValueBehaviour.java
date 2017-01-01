@@ -26,8 +26,7 @@ public class GameStateValueBehaviour extends Behaviour {
 	private FeatureVector featureVector;
 	private String nameSuffix = "";
 
-	public GameStateValueBehaviour() {
-	}
+	public GameStateValueBehaviour() {}
 
 	public GameStateValueBehaviour(FeatureVector featureVector, String nameSuffix) {
 		this.featureVector = featureVector;

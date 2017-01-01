@@ -11,7 +11,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * AdvancedBehaviour performs Monte-Carlo traversal of the action DAG for each valid action.
+ * AdvancedBehaviour performs Monte-Carlo traversal of a single turn action DAG.
  * State evaluation function needs to be provided. Many optimizations have been implemented
  * such as: visited state hashing, depth limited search, A* search strategy
  *
@@ -62,6 +62,7 @@ public class AdvancedBehaviour<T extends Comparable<T>> extends Behaviour {
 	private final IStateEvaluate<T> evaluator;
 	private final int maxDepth;
 	private final int budget;
+	private String name;
 
 	public AdvancedBehaviour(IStateEvaluate<T> evaluator, int maxDepth, int budget) {
 		this.evaluator = evaluator;
@@ -69,9 +70,13 @@ public class AdvancedBehaviour<T extends Comparable<T>> extends Behaviour {
 		this.budget = budget;
 	}
 
+	public void setName(String name) {
+		this.name = name;
+	}
+
 	@Override
 	public String getName() {
-		return "Advanced AI";
+		return "Advanced AI " + name;
 	}
 
 	@Override
@@ -80,6 +85,11 @@ public class AdvancedBehaviour<T extends Comparable<T>> extends Behaviour {
 			.stream()
 			.filter(card -> card.getBaseManaCost() > 3)
 			.collect(Collectors.toList());
+	}
+
+	@Override
+	public void onGameOver(GameContext context, int playerId, int winningPlayerId) {
+		// TODO
 	}
 
 	@Override
