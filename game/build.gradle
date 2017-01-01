@@ -1,23 +1,3 @@
-switch(libnd4jOS) {
-    case 'windows':
-        libnd4jOS = 'windows-x86_64'
-        break
-    case 'linux':
-        libnd4jOS = 'linux-x86_64'
-        break
-    case 'linux-ppc64':
-        libnd4jOS = 'linux-ppc64'
-        break
-    case 'linux-ppc64le':
-        libnd4jOS = 'linux-ppc64le'
-        break
-    case 'macosx':
-        libnd4jOS = 'macosx-x86_64'
-        break
-    default:
-        throw new Exception('Unknown OS defined for -Plibnd4jOS parameter. ND4J will be unable to find platform-specific binaries and thus unable to run.')
-}
-
 dependencies {
     compile project(':shared')
     compile group: 'com.google.code.gson', name: 'gson', version: '2.3.1'
@@ -25,7 +5,7 @@ dependencies {
     compile group: 'org.neuroph', name: 'neuroph-core', version: '2.9'
     compile group: 'org.deeplearning4j', name: 'deeplearning4j-core', version: '0.7.2'
     compile 'org.nd4j:nd4j-native:0.4-rc3.10'
-    compile 'org.nd4j:nd4j-native:0.4-rc3.10:' + libnd4jOS
+    compile 'org.nd4j:nd4j-native:0.4-rc3.10:macosx-x86_64'
 
     testCompile project(':cards')
     testCompile group: 'org.testng', name: 'testng', version: '6.+'
