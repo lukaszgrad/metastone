@@ -4,8 +4,7 @@ dependencies {
     compile group: 'commons-io', name: 'commons-io', version: '2.4'
     compile group: 'org.neuroph', name: 'neuroph-core', version: '2.9'
     compile group: 'org.deeplearning4j', name: 'deeplearning4j-core', version: '0.7.2'
-    compile 'org.nd4j:nd4j-native:0.4-rc3.10'
-    compile 'org.nd4j:nd4j-native:0.4-rc3.10:macosx-x86_64'
+    compile 'org.nd4j:nd4j-native:0.7.2'
 
     testCompile project(':cards')
     testCompile group: 'org.testng', name: 'testng', version: '6.+'
