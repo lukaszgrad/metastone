@@ -3,6 +3,8 @@ package net.demilich.metastone.game.behaviour.advanced;
 import net.demilich.metastone.game.GameContext;
 import net.demilich.metastone.game.behaviour.IFeatureExtractor;
 import net.demilich.metastone.game.behaviour.IStateEvaluate;
+import net.demilich.metastone.game.behaviour.threat.FeatureVector;
+import net.demilich.metastone.game.behaviour.training.NormalizedThreatBasedHeuristic;
 import org.neuroph.nnet.Perceptron;
 import org.neuroph.nnet.learning.PerceptronLearning;
 import org.neuroph.util.TransferFunctionType;
@@ -17,7 +19,7 @@ public class PerceptronEvaluate extends Perceptron
 	private transient IFeatureExtractor<Double> extractor;
 
 	public PerceptronEvaluate(IFeatureExtractor<Double> extractor) {
-		super(extractor.length(), 1, TransferFunctionType.SIGMOID);
+		super(extractor.length() + 1, 1, TransferFunctionType.LINEAR);
 		this.extractor = extractor;
 	}
 
@@ -27,7 +29,9 @@ public class PerceptronEvaluate extends Perceptron
 			.stream(extractor.extract(context, playerId))
 			.mapToDouble(Double::doubleValue)
 			.toArray();
-		setInput(features);
+		double[] extended = Arrays.copyOf(features, features.length + 1);
+		extended[features.length] = (new NormalizedThreatBasedHeuristic(FeatureVector.getFittest()).getScore(context, playerId));
+		setInput(extended);
 		calculate();
 		return getOutput()[0];
 	}

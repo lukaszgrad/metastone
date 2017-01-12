@@ -55,6 +55,14 @@ public class GameStateValueBehaviour extends Behaviour {
 		return score;
 	}
 
+	protected IGameStateHeuristic getHeuristic() {
+		return heuristic;
+	}
+
+	protected void setGameHeuristic(IGameStateHeuristic heuristic) {
+		this.heuristic = heuristic;
+	}
+
 	private void answerTrainingData(TrainingData trainingData) {
 		featureVector = trainingData != null ? trainingData.getFeatureVector() : FeatureVector.getFittest();
 		heuristic = new ThreatBasedHeuristic(featureVector);

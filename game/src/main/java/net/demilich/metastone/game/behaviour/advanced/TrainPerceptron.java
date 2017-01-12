@@ -17,7 +17,7 @@ public class TrainPerceptron {
 	private static final double LEARNING_RATE = 0.1;
 	private static final double MAX_ERROR = 0.0008;
 	private static final int MAX_ITERATIONS = 1000;
-	private static final int MAX_LEARNINGS = 10;
+	private static final int MAX_LEARNINGS = 5;
 
 	public static void main(String[] args) {
 		PerceptronEvaluate network = new PerceptronEvaluate(new SimpleFeatureExtractor());

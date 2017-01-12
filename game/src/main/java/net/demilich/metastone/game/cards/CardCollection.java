@@ -1,10 +1,6 @@
 package net.demilich.metastone.game.cards;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Predicate;
 
@@ -20,12 +16,16 @@ public class CardCollection implements Iterable<Card>, Cloneable {
 		cards.add(card);
 	}
 
-	public void addAll(CardCollection cardCollection) {
+	public void addAll(Collection<Card> cardCollection) {
 		for (Card card : cardCollection) {
 			cards.add(card.clone());
 		}
 	}
-	
+
+	public void addAll(CardCollection cardCollection) {
+		addAll(cardCollection.toList());
+	}
+
 	public void addRandomly(Card card) {
 		int index = ThreadLocalRandom.current().nextInt(cards.size() + 1);
 		cards.add(index, card);

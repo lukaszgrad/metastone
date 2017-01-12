@@ -34,7 +34,7 @@ public class ThreatBasedHeuristic implements IGameStateHeuristic {
 		hardRemoval.add("minion_big_game_hunter");
 	}
 
-	private static ThreatLevel calcuateThreatLevel(GameContext context, int playerId) {
+	public static ThreatLevel calcuateThreatLevel(GameContext context, int playerId) {
 		int damageOnBoard = 0;
 		Player player = context.getPlayer(playerId);
 		Player opponent = context.getOpponent(player);
@@ -80,7 +80,7 @@ public class ThreatBasedHeuristic implements IGameStateHeuristic {
 		this.weights = vector;
 	}
 
-	private double calculateMinionScore(Minion minion, ThreatLevel threatLevel) {
+	public double calculateMinionScore(Minion minion, ThreatLevel threatLevel) {
 		if (minion.hasAttribute(Attribute.MARKED_FOR_DEATH)) {
 			return 0;
 		}

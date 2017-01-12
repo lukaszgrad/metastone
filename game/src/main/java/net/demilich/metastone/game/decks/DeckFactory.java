@@ -16,7 +16,7 @@ public class DeckFactory {
 		}
 		Deck deck = new Deck(HeroClass.ANY);
 		deck.setName("[Debug deck]");
-		deck.getCards().addAll(cardCollection);
+		deck.getCards().addAll(cardCollection.toList());
 		return deck;
 	}
 

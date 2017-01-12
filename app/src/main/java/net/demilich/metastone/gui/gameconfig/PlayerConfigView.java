@@ -28,6 +28,7 @@ import net.demilich.metastone.game.cards.Card;
 import net.demilich.metastone.game.cards.CardCatalogue;
 import net.demilich.metastone.game.cards.HeroCard;
 import net.demilich.metastone.game.decks.Deck;
+import net.demilich.metastone.game.decks.DeckCatalogue;
 import net.demilich.metastone.game.decks.DeckFactory;
 import net.demilich.metastone.game.decks.DeckFormat;
 import net.demilich.metastone.game.entities.heroes.HeroClass;
@@ -38,8 +39,9 @@ import net.demilich.metastone.gui.common.BehaviourStringConverter;
 import net.demilich.metastone.gui.common.DeckStringConverter;
 import net.demilich.metastone.gui.common.HeroStringConverter;
 import net.demilich.metastone.gui.playmode.config.PlayerConfigType;
-import org.neuroph.core.NeuralNetwork;
-import org.neuroph.nnet.MultiLayerPerceptron;
+import org.deeplearning4j.nn.graph.ComputationGraph;
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+import org.deeplearning4j.util.ModelSerializer;
 
 public class PlayerConfigView extends VBox {
 
@@ -173,22 +175,52 @@ public class PlayerConfigView extends VBox {
 		behaviourList.add(new GreedyOptimizeMove(new WeightedHeuristic()));
 		behaviourList.add(new NoAggressionBehaviour());
 
-		AdvancedBehaviour<Float> abSimple = new AdvancedBehaviour<>(new SimpleStateEvaluate(), 2, 10);
+		AdvancedBehaviour abSimple = new AdvancedBehaviour(new SimpleStateEvaluate(), 2, 2, 25);
 		abSimple.setName("Simple Evaluate");
 		behaviourList.add(abSimple);
 
 		String NETWORK_FILE_PATH = "/Users/lukaszgrad/metastone/perceptron";
-		AdvancedBehaviour<Double> abPerceptron = new AdvancedBehaviour<>(
-			PerceptronEvaluate.createFromFile(NETWORK_FILE_PATH, new SimpleFeatureExtractor()), 1, 10);
+		AdvancedBehaviour abPerceptron = new AdvancedBehaviour(
+			PerceptronEvaluate.createFromFile(NETWORK_FILE_PATH, new SimpleFeatureExtractor()), 1, 2, 8);
 		abPerceptron.setName("Perceptron Evaluate");
 		behaviourList.add(abPerceptron);
 
 		String TRAINED_NETWORK_FILE_PATH = "/Users/lukaszgrad/metastone/network";
-		AdvancedBehaviour<Double> abTrainedNeural = new AdvancedBehaviour<>(
-			 NeuralNetworkEvaluate.createFromFile(TRAINED_NETWORK_FILE_PATH, new SimpleFeatureExtractor()), 1, 10
+		AdvancedBehaviour abTrainedNeural = new AdvancedBehaviour(
+			 NeuralNetworkEvaluate.createFromFile(TRAINED_NETWORK_FILE_PATH, new SimpleFeatureExtractor()), 1, 2, 8
 		);
 		abTrainedNeural.setName("Network Evaluate");
 		behaviourList.add(abTrainedNeural);
+
+		String DEEP_NETWORK_FILE_PATH = "/Users/lukaszgrad/metastone/deep_network";
+		MultiLayerNetwork model;
+		try {
+			DeckCatalogue.loadLocalDecks();
+			Deck shamanDeck = DeckCatalogue.getDeckByName("Midrange Shaman");
+			model = ModelSerializer.restoreMultiLayerNetwork(DEEP_NETWORK_FILE_PATH);
+			AdvancedBehaviour deepNeural = new AdvancedBehaviour(
+				new DeepNetworkEvaluate(new DeckFeatureExtractor(shamanDeck), model),
+				2, 2, 25
+			);
+			deepNeural.setName("Deep Network Evaluate");
+			behaviourList.add(deepNeural);
+		} catch (Exception e) {
+			System.out.println("Error: " + e.getMessage());
+		}
+
+		String DEEP_TRAINED_NETWORK_FILE_PATH = "/Users/lukaszgrad/metastone/comp_graph";
+		ComputationGraph trainedModel;
+		try {
+			trainedModel = ModelSerializer.restoreComputationGraph(DEEP_TRAINED_NETWORK_FILE_PATH);
+			AdvancedBehaviour deepTrainedNeural = new AdvancedBehaviour(
+				new ComputationGraphEvaluate(new SimpleFeatureExtractor(), trainedModel),
+				2, 2, 25
+			);
+			deepTrainedNeural.setName("Comp Graph Evaluate");
+			behaviourList.add(deepTrainedNeural);
+		} catch (Exception e) {
+			// TODO
+		}
 
 		behaviourBox.setItems(behaviourList);
 		behaviourBox.valueProperty().addListener(this::onBehaviourChanged);

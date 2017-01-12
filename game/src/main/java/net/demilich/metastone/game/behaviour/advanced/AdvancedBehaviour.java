@@ -2,6 +2,7 @@ package net.demilich.metastone.game.behaviour.advanced;
 
 import net.demilich.metastone.game.GameContext;
 import net.demilich.metastone.game.Player;
+import net.demilich.metastone.game.actions.EndTurnAction;
 import net.demilich.metastone.game.actions.GameAction;
 import net.demilich.metastone.game.behaviour.Behaviour;
 import net.demilich.metastone.game.behaviour.IStateEvaluate;
@@ -17,7 +18,7 @@ import java.util.stream.Collectors;
  *
  * @author  Lukasz Grad
  */
-public class AdvancedBehaviour<T extends Comparable<T>> extends Behaviour {
+public class AdvancedBehaviour extends Behaviour {
 
 	/*
 	 * Class representing a node during DAG traversal
@@ -59,14 +60,16 @@ public class AdvancedBehaviour<T extends Comparable<T>> extends Behaviour {
 		}
 	}
 
-	private final IStateEvaluate<T> evaluator;
+	private final IStateEvaluate<Double> evaluator;
 	private final int maxDepth;
 	private final int budget;
+	private final int bestDepth;
 	private String name;
 
-	public AdvancedBehaviour(IStateEvaluate<T> evaluator, int maxDepth, int budget) {
+	public AdvancedBehaviour(IStateEvaluate<Double> evaluator, int maxDepth, int bestDepth, int budget) {
 		this.evaluator = evaluator;
 		this.maxDepth = maxDepth;
+		this.bestDepth = bestDepth;
 		this.budget = budget;
 	}
 
@@ -98,33 +101,33 @@ public class AdvancedBehaviour<T extends Comparable<T>> extends Behaviour {
 			return validActions.get(0);
 
 		HashSet<GameContext> knownStates = new HashSet<>();
-		GameAction bestAction = validActions.get(0);
-		T bestValue = evaluator.evaluate(context, player.getId());
+		GameAction bestAction = new EndTurnAction();
+		Double bestValue = evaluate(context, player.getId());
 		for (GameAction action : validActions) {
-			T value = traverse(context, player.getId(), action, knownStates);
+			Double value = traverse(context, player.getId(), action, knownStates);
 			if (value.compareTo(bestValue) > 0) {
 				bestValue = value;
 				bestAction = action;
 			}
 		}
+		System.out.println("Best action score: " + bestValue);
 		return bestAction;
 	}
 
-	private T traverse(GameContext context,
+	private Double traverse(GameContext context,
 	                   int playerId,
 	                   GameAction action,
 	                   HashSet<GameContext> knownStates) {
 		GameContext contextClone = context.clone();
 		contextClone.getLogic().performGameAction(playerId, action);
-		T bestValue = evaluator.evaluate(contextClone, playerId);
-
+		Double bestValue = evaluator.evaluate(contextClone, playerId);
 		// Start from the root node with depth 0
-		PriorityQueue<ContextNode<T>> states = new PriorityQueue<>();
+		PriorityQueue<ContextNode<Double>> states = new PriorityQueue<>();
 		states.add(new ContextNode<>(contextClone, 0, bestValue));
 		int steps = 0;
-		T value;
+		Double value;
 		while(!states.isEmpty() && steps < budget) {
-			ContextNode<T> node = states.poll(); // Remove best node
+			ContextNode<Double> node = states.poll(); // Remove best node
 			// Immediately return if already seen
 			if (!knownStates.contains(node.getContext())) {
 				// Previously unseen state
@@ -136,7 +139,7 @@ public class AdvancedBehaviour<T extends Comparable<T>> extends Behaviour {
 						states.addAll(spanAll(node, playerId));
 					} else {
 						// Maximum depth exceeded, perform best child traversal
-						value = bestTraversal(node, playerId);
+						value = bestTraversal(node, playerId, 1);
 					}
 				}
 				if (value.compareTo(bestValue) > 0)
@@ -147,17 +150,17 @@ public class AdvancedBehaviour<T extends Comparable<T>> extends Behaviour {
 		return bestValue;
 	}
 
-	private T bestTraversal(ContextNode<T> node, int playerId) {
-		if (isFinished(node.getContext(), playerId))
+	private Double bestTraversal(ContextNode<Double> node, int playerId, int currentDepth) {
+		if (isFinished(node.getContext(), playerId) || currentDepth == bestDepth)
 			return node.getValue();
-		T value = bestTraversal(bestNode(spanAll(node, playerId)), playerId);
+		Double value = bestTraversal(bestNode(spanAll(node, playerId)), playerId, currentDepth + 1);
 		return (node.getValue().compareTo(value) > 0) ? node.getValue(): value;
 	}
 
-	private ContextNode<T> bestNode(List<ContextNode<T>> nodes) {
-		ContextNode<T> best = nodes.get(0);
-		T bestValue = best.getValue();
-		for (ContextNode<T> node : nodes) {
+	private ContextNode<Double> bestNode(List<ContextNode<Double>> nodes) {
+		ContextNode<Double> best = nodes.get(0);
+		Double bestValue = best.getValue();
+		for (ContextNode<Double> node : nodes) {
 			if (node.getValue().compareTo(bestValue) > 0) {
 				bestValue = node.getValue();
 				best = node;
@@ -166,15 +169,15 @@ public class AdvancedBehaviour<T extends Comparable<T>> extends Behaviour {
 		return best;
 	}
 
-	private List<ContextNode<T>> spanAll(ContextNode<T> node, int playerId) {
-		List<ContextNode<T>> nodes = new ArrayList<>();
+	private List<ContextNode<Double>> spanAll(ContextNode<Double> node, int playerId) {
+		List<ContextNode<Double>> nodes = new ArrayList<>();
 		for (GameAction a : node.getContext().getValidActions()) {
 			GameContext actionContext = node.getContext().clone();
 			actionContext.getLogic().performGameAction(playerId, a);
 			nodes.add(new ContextNode<>(
 					actionContext,
 					node.getDepth() + 1,
-					evaluator.evaluate(actionContext, playerId))
+					evaluate(actionContext, playerId))
 			);
 		}
 		return nodes;
@@ -182,5 +185,13 @@ public class AdvancedBehaviour<T extends Comparable<T>> extends Behaviour {
 
 	private boolean isFinished(GameContext context, int playerId) {
 		return (context.getActivePlayerId() != playerId || context.gameDecided());
+	}
+
+	private Double evaluate(GameContext context, int playerId) {
+		if (context.getPlayer(playerId).isDestroyed())
+			return Double.NEGATIVE_INFINITY;
+		if (context.getOpponent(context.getPlayer(playerId)).isDestroyed())
+			return Double.POSITIVE_INFINITY;
+		return evaluator.evaluate(context, playerId);
 	}
 }

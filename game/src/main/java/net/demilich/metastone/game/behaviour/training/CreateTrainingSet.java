@@ -96,8 +96,8 @@ public class CreateTrainingSet {
 				context.dispose();
 			}
 		}
-		addDataSets(dataSet, behaviour1.getTrainingSet());
-		addDataSets(dataSet, behaviour2.getTrainingSet());
+		//addDataSets(dataSet, behaviour1.getTrainingSet());
+		//addDataSets(dataSet, behaviour2.getTrainingSet());
 		logger.info("Data set size: " + dataSet.size());
 		//for (int i = 0; i < 100; i++) {
 		//	logger.info("State: {}, value: {}", dataSet.getRowAt(i).getInput(), dataSet.getRowAt(i).getDesiredOutput());

@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import net.demilich.metastone.game.GameContext;
 import net.demilich.metastone.game.Player;
+import net.demilich.metastone.game.behaviour.advanced.DeckFeatureExtractor;
 import net.demilich.metastone.game.behaviour.advanced.SimpleFeatureExtractor;
 import net.demilich.metastone.game.cards.Card;
 import net.demilich.metastone.game.cards.CardCatalogue;
@@ -18,14 +19,12 @@ import net.demilich.metastone.game.logic.GameLogic;
 import net.demilich.metastone.utils.ResourceInputStream;
 import net.demilich.metastone.utils.ResourceLoader;
 import net.demilich.metastone.utils.UserHomeMetastone;
+import org.nd4j.linalg.dataset.DataSet;
 import org.neuroph.core.data.DataSetRow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
 import java.util.*;
 
 /**
@@ -40,13 +39,11 @@ public class CreateTrainingSetDeck {
 	private static final String DECKS_FOLDER_PATH =
 		UserHomeMetastone.getPath() + File.separator + DECKS_FOLDER;
 	private static final String DATA_SET_PATH =
-		UserHomeMetastone.getPath() + File.separator + "shaman_data_set3.norm";
+		UserHomeMetastone.getPath() + File.separator + "shaman_data_set20.data";
 	private static final String DATA_SET_PATH_TXT =
-		UserHomeMetastone.getPath() + File.separator + "shaman_data_set3.norm.txt";
+		UserHomeMetastone.getPath() + File.separator + "shaman_data_set20.data.txt";
 
 	public static void main(String[] args) {
-		SimpleFeatureExtractor extractor = new SimpleFeatureExtractor();
-		TrainingSet dataSet = new TrainingSet(extractor.length(), 1);
 		List<Deck> decks = new ArrayList<>();
 		DeckFormat deckFormat = new DeckFormat();
 		deckFormat.setName("All");
@@ -79,8 +76,10 @@ public class CreateTrainingSetDeck {
 				trainingDeck = deck;
 		}
 		logger.info(trainingDeck.getName());
-		RecGameStateValueBehaviour behaviour1 = new RecGameStateValueBehaviour(new SimpleFeatureExtractor());
-		RecGameStateValueBehaviour behaviour2 = new RecGameStateValueBehaviour(new SimpleFeatureExtractor());
+		DeckFeatureExtractor extractor = new DeckFeatureExtractor(trainingDeck);
+		logger.info("Extractor length: {}", extractor.length());
+		RecGameStateValueBehaviour behaviour1 = new RecGameStateValueBehaviour(new DeckFeatureExtractor(trainingDeck));
+		RecGameStateValueBehaviour behaviour2 = new RecGameStateValueBehaviour(new DeckFeatureExtractor(trainingDeck));
 		PlayerConfig config1 = new PlayerConfig(trainingDeck, behaviour1);
 		PlayerConfig config2 = new PlayerConfig(trainingDeck, behaviour2);
 		config1.setHeroCard(MetaHero.getHeroCard(trainingDeck.getHeroClass()));
@@ -95,13 +94,24 @@ public class CreateTrainingSetDeck {
 			logger.info("Game took turns: " + context.getTurn());
 			context.dispose();
 		}
-		addDataSets(dataSet, behaviour1.getTrainingSet());
-		addDataSets(dataSet, behaviour2.getTrainingSet());
-		logger.info("Data set size: " + dataSet.size());
-		//logger.info(dataSet.toCSV());
+		DataSet[] sets = {behaviour1.getTrainingSet(), behaviour2.getTrainingSet()};
+		DataSet dataSet = DataSet.merge(Arrays.asList(sets));
+		logger.info("Data set size: " + dataSet.asList().size());
+		//logger.info(dataSet.toString());
 		logger.info("Data set saved in " + DATA_SET_PATH);
-		dataSet.save(DATA_SET_PATH);
-		dataSet.saveAsTxt(DATA_SET_PATH_TXT, ",");
+		dataSet.save(new File(DATA_SET_PATH));
+		try{
+			PrintWriter writer = new PrintWriter(DATA_SET_PATH_TXT, "UTF-8");
+			for (DataSet dataRow : dataSet.asList()) {
+				writer.printf("%f, %f\n",
+					dataRow.getFeatures().getDouble(extractor.length() - 1),
+					dataRow.getLabels().getDouble(0)
+				);
+			}
+			writer.close();
+		} catch (IOException e) {
+			// do something
+		}
 	}
 
 	private static void addDataSets(TrainingSet set1, TrainingSet set2) {

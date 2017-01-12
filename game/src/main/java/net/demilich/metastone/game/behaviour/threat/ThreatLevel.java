@@ -1,5 +1,5 @@
 package net.demilich.metastone.game.behaviour.threat;
 
-enum ThreatLevel {
+public enum ThreatLevel {
 	GREEN, YELLOW, RED
 }
