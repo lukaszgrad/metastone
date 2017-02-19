@@ -41,7 +41,7 @@ public class DeckFeatureExtractor extends SimpleFeatureExtractor implements IFea
 		Double[] extracted = Arrays.copyOf(features, length());
 		int index = SimpleFeatureExtractor.TOTAL_FEATURES;
 		for (Card card : cards) {
-			extracted[index++] = (context.getPlayer(playerId).getHand().contains(card)) ? 1.0 : 0.0;
+			extracted[index++] = (context.getPlayer(playerId).getHand().containsCard(card)) ? 1.0 : 0.0;
 		}
 		return extracted;
 	}

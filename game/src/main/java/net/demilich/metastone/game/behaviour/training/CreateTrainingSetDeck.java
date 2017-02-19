@@ -33,15 +33,15 @@ import java.util.*;
 public class CreateTrainingSetDeck {
 
 	private static Logger logger = LoggerFactory.getLogger(CreateTrainingSet.class);
-	private static final int GAMES_PER_DECK = 20;
+	private static final int GAMES_PER_DECK = 100;
 	private static final String DECKS_FOLDER = "decks";
 	private static final String DECK_NAME = "Midrange Shaman";
 	private static final String DECKS_FOLDER_PATH =
 		UserHomeMetastone.getPath() + File.separator + DECKS_FOLDER;
 	private static final String DATA_SET_PATH =
-		UserHomeMetastone.getPath() + File.separator + "shaman_data_set20.data";
+		UserHomeMetastone.getPath() + File.separator + "shaman_data_set100.data";
 	private static final String DATA_SET_PATH_TXT =
-		UserHomeMetastone.getPath() + File.separator + "shaman_data_set20.data.txt";
+		UserHomeMetastone.getPath() + File.separator + "shaman_data_set100.data.txt";
 
 	public static void main(String[] args) {
 		List<Deck> decks = new ArrayList<>();
@@ -103,10 +103,10 @@ public class CreateTrainingSetDeck {
 		try{
 			PrintWriter writer = new PrintWriter(DATA_SET_PATH_TXT, "UTF-8");
 			for (DataSet dataRow : dataSet.asList()) {
-				writer.printf("%f, %f\n",
-					dataRow.getFeatures().getDouble(extractor.length() - 1),
-					dataRow.getLabels().getDouble(0)
-				);
+				for (int i = 0; i < dataRow.getFeatures().length(); i++) {
+					writer.printf("%f, ", dataRow.getFeatures().getDouble(i));
+				}
+				writer.printf("%f\n", dataRow.getLabels().getDouble(0));
 			}
 			writer.close();
 		} catch (IOException e) {
